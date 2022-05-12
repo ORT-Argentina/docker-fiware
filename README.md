@@ -43,6 +43,12 @@ Postman Collection in Web:
 
 We reccommend using [Ubuntu](https://ubuntu.com/) as OS.
 
+### Grafana
+
+Default User/Password
+
+admin - admin
+
 ### Installation
 
 1. Configure hosts file

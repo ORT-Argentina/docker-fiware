@@ -28,6 +28,7 @@ services:
       - "CYGNUS_POSTGRESQL_PORT=${POSTGRES_PORT:-5432}" # Port that the PostgreSQL server uses to listen to commands
       - "CYGNUS_POSTGRESQL_USER=${POSTGRES_USER}" # Username for the PostgreSQL database user
       - "CYGNUS_POSTGRESQL_PASS=${POSTGRES_PASS}" # Password for the PostgreSQL database user
+      - "CYGNUS_POSTGRESQL_DATABASE=${POSTGRES_DATABASE}" #DATABASE
       - "CYGNUS_POSTGRESQL_ENABLE_CACHE=true" # Switch to enable caching within the PostgreSQL configuration
       - "CYGNUS_POSTGRESQL_SERVICE_PORT=5055" # The port the agent.conf is configured for
       - "CYGNUS_LOG_LEVEL=DEBUG" # The logging level for Cygnus
@@ -74,6 +75,15 @@ services:
       - ${ADMIN_MONGO_PORT:-1234}:1234
     environment:
       - HOST=0.0.0.0
+  grafana:
+    image: grafana/grafana-oss
+    ports:
+      - ${GRAFANA_PORT}:3000
+    environment:
+      #crate-datasource,Postgres
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-worldmap-panel
+    volumes:
+      - grafana-storage:/var/lib/grafana
   #portainer:
   #  image: portainer/portainer-ce:latest
   #  container_name: portainer
@@ -90,3 +100,4 @@ volumes:
   mongo-db: ~
   postgres-db: ~
   pgadmin-db: ~
+  grafana-storage: ~
