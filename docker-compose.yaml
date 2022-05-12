@@ -1,0 +1,92 @@
+version: "3.5"
+services:
+  orion:
+    image: fiware/orion
+    hostname: orion
+    container_name: fiware-orion
+    depends_on:
+      - mongo-db
+    ports:
+      - "1026:1026"
+    command: -dbhost mongo-db -logLevel DEBUG -noCache
+  # Ver algun esquema de authorización keyrock u otro.
+  # Cygnus is configured to write context data to PostgeSQL
+  # Ver Altenrativa de Draco
+  cygnus:
+    image: fiware/cygnus-ngsi
+    hostname: cygnus
+    container_name: fiware-cygnus
+    networks:
+      - default
+    depends_on:
+      - postgres-db
+    ports:
+      - "5055:5055"
+      - "5080:5080" 
+    environment:
+      - "CYGNUS_POSTGRESQL_HOST=${POSTGRES_HOST}" # Hostname of the PostgreSQL server used to persist historical context data
+      - "CYGNUS_POSTGRESQL_PORT=${POSTGRES_PORT:-5432}" # Port that the PostgreSQL server uses to listen to commands
+      - "CYGNUS_POSTGRESQL_USER=${POSTGRES_USER}" # Username for the PostgreSQL database user
+      - "CYGNUS_POSTGRESQL_PASS=${POSTGRES_PASS}" # Password for the PostgreSQL database user
+      - "CYGNUS_POSTGRESQL_ENABLE_CACHE=true" # Switch to enable caching within the PostgreSQL configuration
+      - "CYGNUS_POSTGRESQL_SERVICE_PORT=5055" # The port the agent.conf is configured for
+      - "CYGNUS_LOG_LEVEL=DEBUG" # The logging level for Cygnus
+      - "CYGNUS_SERVICE_PORT=5055" # Notification Port that Cygnus listens to for Postgres subscriptions
+      - "CYGNUS_API_PORT=5080" # Port that Cygnus listens on for operational reasons
+
+  # Databases - Orion uses Mongo-DB, Cygnus is persisting to Postgres
+  mongo-db:
+    image: mongo:3.6
+    hostname: mongo-db
+    container_name: db-mongo
+    ports:
+      - "27017:27017" 
+    command: --bind_ip_all --smallfiles
+    volumes:
+      - mongo-db:/data
+  postgres-db:
+    image: postgres
+    hostname: ${POSTGRES_PORT}
+    container_name: db-postgres
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    environment:
+      - "POSTGRES_PASSWORD=${POSTGRES_PASS}"
+      - "POSTGRES_USER=${POSTGRES_USER}"
+      - "POSTGRES_DB=${POSTGRES_DATABASE}"
+    volumes:
+      - postgres-db:/var/lib/postgresql/data
+
+  #Database Manager
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4:latest
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@ort.edu.ar}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+    volumes:
+      - postgres-db:/root/.pgadmin
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+  adminmongo:
+    image: mrvautin/adminmongo
+    ports:
+      - ${ADMIN_MONGO_PORT:-1234}:1234
+    environment:
+      - HOST=0.0.0.0
+  #portainer:
+  #  image: portainer/portainer-ce:latest
+  #  container_name: portainer
+  #  restart: unless-stopped
+  #  security_opt:
+  #    - no-new-privileges:true
+  #  volumes:
+  #    - /etc/localtime:/etc/localtime:ro
+  #    - /var/run/docker.sock:/var/run/docker.sock:ro
+  #    - ${DATA_PATH_HOST}/portainer:/data
+  #  ports:
+  #    - 9000:9000
+volumes:
+  mongo-db: ~
+  postgres-db: ~
+  pgadmin-db: ~
