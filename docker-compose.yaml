@@ -9,6 +9,12 @@ services:
     ports:
       - "1026:1026"
     command: -dbhost mongo-db -logLevel DEBUG -noCache
+    #healthcheck:
+    #  test: ["CMD", "curl", "-f", "http://0.0.0.0:1026/version"]
+    #  interval: 1m
+    #  timeout: 10s
+    #  retries: 3
+
   # Ver algun esquema de authorización keyrock u otro.
   # Cygnus is configured to write context data to PostgeSQL
   # Ver Altenrativa de Draco
@@ -47,7 +53,7 @@ services:
       - mongo-db:/data
   postgres-db:
     image: postgres
-    hostname: ${POSTGRES_PORT:-5432}
+    hostname: postgres
     container_name: db-postgres
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
@@ -81,9 +87,28 @@ services:
       - ${GRAFANA_PORT}:3000
     environment:
       #crate-datasource,Postgres
-      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-worldmap-panel
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-worldmap-panel,grafana-clock-panel,grafana-worldmap-panel
     volumes:
-      - grafana-storage:/var/lib/grafana
+      - grafana-storage:/var/lib/grafana #admin - ORT2022!
+  crate:
+    image: crate:1.0.5
+    ports:
+      # Admin UI
+      - "${CREATEDB_PORT:-4200}:4200"
+      # Transport protocol
+      - "4300:4300"
+    command: -Ccluster.name=democluster -Chttp.cors.enabled=true -Chttp.cors.allow-origin="*"
+    volumes:
+      - cratedata:/data
+  quantumleap:
+    image: smartsdk/quantumleap
+    ports:
+      - "${QUATUMLEAP_PORT:-8668}:8668"
+    depends_on:
+      - orion
+      - crate
+    environment:
+      - CRATE_HOST=crate
   #portainer:
   #  image: portainer/portainer-ce:latest
   #  container_name: portainer
@@ -93,11 +118,13 @@ services:
   #  volumes:
   #    - /etc/localtime:/etc/localtime:ro
   #    - /var/run/docker.sock:/var/run/docker.sock:ro
-  #    - ${DATA_PATH_HOST}/portainer:/data
+  #    - portainer:/data
   #  ports:
-  #    - 9000:9000
+  #    - ${PORTAINER_PORT:-9000}:9000
 volumes:
   mongo-db: ~
   postgres-db: ~
   pgadmin-db: ~
   grafana-storage: ~
+  cratedata: ~
+  #portainer: ~
