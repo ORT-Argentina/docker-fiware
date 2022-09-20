@@ -109,6 +109,15 @@ services:
       - crate
     environment:
       - CRATE_HOST=crate
+  draco:
+    container_name: draco
+    image: ging/fiware-draco
+    ports:
+      - "${DRACO_PORT_UI:-8443}:8443"
+      - "${DRACO_PORT:-5050}:5050"
+    environment:
+      - "SINGLE_USER_CREDENTIALS_USERNAME=${DRACO_UI_USER:-admin}"
+      - "SINGLE_USER_CREDENTIALS_PASSWORD=${DRACO_UI_PASS:-Password123456!}"
   #portainer:
   #  image: portainer/portainer-ce:latest
   #  container_name: portainer

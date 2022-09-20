@@ -97,9 +97,19 @@ docker ps
 
 [Alt Wirecloud](https://wirecloud.readthedocs.io/en/stable/)
 
+[Draco](https://fiware-draco.readthedocs.io/)
+
 To be able to access the dashboard directly:
 
 http://localhost:8080
+
+Draco UI
+
+https://localhost:8443/nifi
+
+Draco API
+
+https://localhost:8443/nifi-api/flow/status
 
 
 ```bash
