@@ -1,7 +1,19 @@
 version: "3.5"
 services:
+  orion1:
+    #image: fiware/orion:latest
+    build: 
+      context: .
+      dockerfile: ./Orion/Dockerfile
+    hostname: orion
+    container_name: fiware-orion-1
+    depends_on:
+      - mongo-db
+    ports:
+    - "1027:1027"
+    command: -dbhost mongo-db -logLevel DEBUG -noCache
   orion:
-    image: fiware/orion
+    image: fiware/orion:latest
     hostname: orion
     container_name: fiware-orion
     depends_on:
